@@ -60,27 +60,29 @@ remoteport = int(input("Please inform the SSH port to connect to ASA. Just "
 # Different actions for different versions
 if asaversion == '8.2':
     print(" ")
-    print("ASA version 8.2 or earlier, generating configuration in ISAKMP mode")
-    print("-------------------------------------------------------------------")
+    print("ASA version 8.2 or earlier, generating "
+          "configuration in ISAKMP mode")
+    print("------------------------"
+          "-------------------------------------------")
     hostname = input("Please inform the IP or hostname to connect: ")
     ssh_username = input("Please inform the username to be used to connect "
-            "(make sure the user has privilege 15): ")
+                         "(make sure the user has privilege 15): ")
     ssh_password = getpass.getpass("Please inform the password to be used"
-            " to connect: ")
+                                   " to connect: ")
     enable_secret = getpass.getpass("ASA in version 8.2 and below uses enable"
-            " secret, please inform them now: ")
+                                    " secret, please inform them now: ")
     print("-------------------------------------------------------------"
-            "-----------")
+          "-----------")
 elif asaversion == '8.3':
     print(" ")
     print("ASA version 8.3 or superior, generating configuration in IKE mode")
     print("-----------------------------------------------------------------")
     hostname = input("Please inform the IP or hostname to connect: ")
     ssh_username = input("Please inform the username to be used to connect"
-            " (make sure the user has privilege 15): ")
+                         " (make sure the user has privilege 15): ")
     ssh_password = getpass.getpass("Please inform the password to be used to"
-            " connect and enable: ")
-    # We dont really need this here, but netmiko refuses to work if dont get 
+                                   " connect and enable: ")
+    # We dont really need this here, but netmiko refuses to work if dont get
     # enable superpowers, so, lets use the same variable for enable_secret
     enable_secret = ssh_password
     print("------------------------------------------------------------")
@@ -89,26 +91,29 @@ else:
     print("Invalid input, program will exit now")
     sys.exit()
 
+
 # Lets confirm the port is opened before do anything further
-def isOpen(ip,port):
+def isOpen(ip, port):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print('Verifying if host is listening on remote port '
-                + str(remoteport) + ' ...')
+              + str(remoteport) + ' ...')
         s.connect((ip, port))
         s.shutdown(2)
         print(" ")
-        print('Host is listening on remote port ' + str(remoteport) + 
-                '... proceeding')
+        print('Host is listening on remote port ' + str(remoteport) +
+              '... proceeding')
         print(" ")
     except socket.error:
         print(" ")
-        print('Host its not listening on indicated remote port ' 
-                + str(remoteport) + ', program will exit now')
+        print('Host its not listening on indicated remote port '
+              + str(remoteport) + ', program will exit now')
         sys.exit()
 
+
 # Execute the function to check if host is listening on indicated port
-isOpen(hostname,remoteport)
+isOpen(hostname, remoteport)
+
 
 # Lets define a ASA here, to be used be netmiko after
 asa_firewall = {
@@ -116,47 +121,55 @@ asa_firewall = {
     'ip':   hostname,
     'username': ssh_username,
     'password': ssh_password,
-    'port' : remoteport,    
+    'port': remoteport,
     'secret': enable_secret,
     'verbose': False,       # optional, defaults to False
 }
 
-# Connect to ASA using SSH, and stores the version of the box to be compared 
+
+# Connect to ASA using SSH, and stores the version of the box to be compared
 # We need this to ensure we will not break anything to user
-def check_asaversion(): 
+def check_asaversion():
     client = ConnectHandler(**asa_firewall)
     # Stores entire 'show version' output into variable showversion
     showversion = client.send_command('show version')
     # Split the showversion variable to get only the major version/release
-    showversion_split = str(showversion.split('\n')[1].split(' ')[-2].split('(')[0])
+    showversion_split = str(showversion.split('\n')[1]
+                            .split(' ')[-2].split('(')[0])
     return showversion_split
+
 
 # Lets put the ASA version here to compare in next section
 version_running = check_asaversion()
+
 
 # Compare the user input with the version we got from device
 if version_running <= '8.2':
     if version_running <= '8.2':
         print(" ")
-        print("You informed version " + asaversion + " when program started...") 
-        print("Informed version " + asaversion + " and device version " 
-                + version_running + " are compatible, proceeding...")
-    else:
-        print("You informed version " + asaversion + " when program started...") 
+        print("You informed version " + asaversion +
+              " when program started...")
         print("Informed version " + asaversion + " and device version "
-                + version_running + " are not compatible to configure")
+              + version_running + " are compatible, proceeding...")
+    else:
+        print("You informed version " + asaversion +
+              " when program started...")
+        print("Informed version " + asaversion + " and device version "
+              + version_running + " are not compatible to configure")
         print("Please check your input and try again")
         print("Exiting now...")
         sys.exit()
 elif version_running >= '8.3':
     if version_running >= '8.3':
-        print("You informed version " + asaversion + " when program started...") 
-        print("Informed version " + asaversion + " and device version " 
-                + version_running + " are compatible, proceeding...")
+        print("You informed version " + asaversion +
+              " when program started...")
+        print("Informed version " + asaversion + " and device version "
+              + version_running + " are compatible, proceeding...")
     else:
-        print("You informed version " + asaversion + " when program started...") 
-        print("Informed version " + asaversion + " and device version " 
-                + version_running + " are not compatible to configure")
+        print("You informed version " + asaversion +
+              " when program started...")
+        print("Informed version " + asaversion + " and device version "
+              + version_running + " are not compatible to configure")
         print("Please check your input and try again")
         print("Exiting now...")
         sys.exit()
@@ -165,11 +178,11 @@ elif version_running >= '8.3':
 # to be applied into ASA further
 company01 = input("Enter abbreviated name of the company of this firewall: ")
 company02 = input("Enter abbreviated name of partner company where the "
-        "connection will be made: ")
-print("object-group network " + company01 + "-" + company02, 
-        file=open("/tmp/temp_network-companies.txt", "w"))
+                  "connection will be made: ")
+print("object-group network " + company01 + "-" + company02,
+      file=open("/tmp/temp_network-companies.txt", "w"))
 print("description Hosts/Networks to protect in " + company01 + " side",
-        file=open("/tmp/temp_network-companies.txt", "a")) 
+      file=open("/tmp/temp_network-companies.txt", "a"))
 print(" ")
 print("Please inform the hosts/networks to be added to VPN in " + company01)
 print("side, to specify hosts enter 255.255.255.255 as mask")
@@ -192,10 +205,10 @@ arquivo = open('/tmp/temp_network-companies.txt', 'a')
 for item in protect_company01:
     arquivo.write("%s\n" % item)
 
-print("object-group network " + company02 + "-" + company01, 
-        file=open("/tmp/temp_network-companies.txt", "a"))
-print("description Hosts/Networks to protect in " + company02 + " side", 
-        file=open("/tmp/temp_network-companies.txt", "a")) 
+print("object-group network " + company02 + "-" + company01,
+      file=open("/tmp/temp_network-companies.txt", "a"))
+print("description Hosts/Networks to protect in " + company02 + " side",
+      file=open("/tmp/temp_network-companies.txt", "a"))
 print(" ")
 print("Please inform the hosts/networks to be added to VPN in " + company02)
 print("side, to specify hosts enter 255.255.255.255 as mask")
@@ -220,37 +233,36 @@ for item in protect_company02:
 
 # Lets build the default ACLs
 print("access-list " + company01 + "-" + company02 + "extended permit ip "
-      "any object-group " + company01 + "-" + company02, 
-      file=open("/tmp/temp_network-companies.txt", "a")) 
+      "any object-group " + company01 + "-" + company02,
+      file=open("/tmp/temp_network-companies.txt", "a"))
 
 print("access-list " + company01 + "-" + company02 + "extended permit ip "
-      "object-group " + company01 + "-" + company02 + "any", 
-      file=open("/tmp/temp_network-companies.txt", "a")) 
+      "object-group " + company01 + "-" + company02 + "any",
+      file=open("/tmp/temp_network-companies.txt", "a"))
 
 print("access-list " + company01 + "-" + company02 + "extended permit ip any4"
-      " object-group " + company01 + "-" + company02, 
-      file=open("/tmp/temp_network-companies.txt", "a")) 
+      " object-group " + company01 + "-" + company02,
+      file=open("/tmp/temp_network-companies.txt", "a"))
 
 print("access-list " + company01 + "-" + company02 + "extended permit ip"
       " object-group " + company01 + "-" + company02 + "any4",
-      file=open("/tmp/temp_network-companies.txt", "a")) 
+      file=open("/tmp/temp_network-companies.txt", "a"))
 
-access-list B2BSSIT-RABK extended permit ip any4 object-group B2BSSIT-RABK 
-access-list B2BSSIT-RABK extended permit ip object-group B2BSSIT-RABK any4 
+'''access-list B2BSSIT-RABK extended permit ip any4 object-group B2BSSIT-RABK
+access-list B2BSSIT-RABK extended permit ip object-group B2BSSIT-RABK any4
 
 # Define default variables for security association parameters
 lifetime_seconds = 28800
 lifetime_kilobytes = 4608000
 
-# Define dictionaries to read actual configuration and determine the 
+# Define dictionaries to read actual configuration and determine the
 # index of the new configuration
-#crypto_map_properties = { 'index': ' ', 'parameter': ' ',
-#'property': ' ', 'value': '' }
-#crypto_policy = { 'index': ' ', 'authentication': ' ', 'encryption': ' ',
-#'hash': ' ', 'group': ' ', 'lifetime': '' } 
-#group_policy = { 'name': ' ', 'protocol': ' ', 'peer_ip': '' }
-#tunnel_group = { 'peer_ip': ' ', 'group_policy': ' ', 'psk': '' } 
+crypto_map_properties = { 'index': ' ', 'parameter': ' ',
+'property': ' ', 'value': '' }
+crypto_policy = { 'index': ' ', 'authentication': ' ', 'encryption': ' ',
+'hash': ' ', 'group': ' ', 'lifetime': '' }
+group_policy = { 'name': ' ', 'protocol': ' ', 'peer_ip': '' }
+tunnel_group = { 'peer_ip': ' ', 'group_policy': ' ', 'psk': '' }
 
 # Start to fill the new configuration
-#def cypto-policy-conf { 
-#	print 'crypto isakmp policy crypto_policy.index()',
+def cypto-policy-conf {print 'crypto isakmp policy crypto_policy.index()','''
