@@ -4,12 +4,9 @@ import os
 # Load built-in or APT installed modules
 import socket
 import sys
-import os
 import getpass
 import pip
-import paramiko
 # Load netmiko module, to do the magic happens
-import netmiko
 from netmiko import ConnectHandler
 
 print("L2L configuration generator")
